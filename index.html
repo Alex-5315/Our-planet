@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Planet — Frozen Worlds</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ice: #c8e8f5;
+    --deep: #03111f;
+    --ocean: #0a2a4a;
+    --glacier: #7fc8e8;
+    --aurora-green: #4ef0b0;
+    --aurora-purple: #a855f7;
+    --snow: #eaf6ff;
+    --accent: #38bdf8;
+    --warn: #f97316;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--deep);
+    color: var(--snow);
+    font-family: 'Rajdhani', sans-serif;
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* Custom cursor */
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    background: var(--accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s, width 0.2s, height 0.2s, background 0.2s;
+    mix-blend-mode: screen;
+  }
+  .cursor-ring {
+    position: fixed;
+    width: 36px; height: 36px;
+    border: 1px solid rgba(56,189,248,0.4);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: transform 0.15s ease, width 0.3s, height 0.3s;
+  }
+
+  /* Canvas for snow & aurora */
+  #bgCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Hero */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 1;
+    padding: 2rem;
+    overflow: hidden;
+  }
+
+  .netflix-badge {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: #e50914;
+    border: 1px solid #e50914;
+    padding: 4px 14px;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    animation: fadeUp 1s ease both;
+  }
+
+  .hero-pretitle {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: clamp(0.9rem, 2vw, 1.1rem);
+    letter-spacing: 0.25em;
+    color: var(--glacier);
+    margin-bottom: 0.5rem;
+    animation: fadeUp 1s 0.2s ease both;
+    opacity: 0;
+  }
+
+  .hero-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(4rem, 12vw, 9rem);
+    font-weight: 300;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+    background: linear-gradient(180deg, #ffffff 0%, var(--glacier) 60%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: fadeUp 1s 0.4s ease both;
+    opacity: 0;
+  }
+
+  .hero-subtitle {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: clamp(1rem, 3vw, 1.6rem);
+    font-weight: 300;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-top: 1rem;
+    animation: fadeUp 1s 0.6s ease both;
+    opacity: 0;
+  }
+
+  .hero-tagline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(0.9rem, 2vw, 1.15rem);
+    color: rgba(200,232,245,0.7);
+    max-width: 560px;
+    line-height: 1.8;
+    margin-top: 1.5rem;
+    animation: fadeUp 1s 0.8s ease both;
+    opacity: 0;
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    color: var(--glacier);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    animation: fadeUp 1s 1.2s ease both;
+    opacity: 0;
+  }
+  .scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollPulse 2s infinite;
+  }
+
+  /* Section base */
+  section {
+    position: relative;
+    z-index: 1;
+    padding: 5rem 2rem;
+  }
+
+  .section-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-label::before {
+    content: '';
+    display: inline-block;
+    width: 30px; height: 1px;
+    background: var(--accent);
+  }
+
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 300;
+    line-height: 1.1;
+    margin-bottom: 3rem;
+    max-width: 700px;
+  }
+
+  /* Stats row */
+  .stats-section {
+    background: linear-gradient(180deg, var(--deep) 0%, #061828 100%);
+    border-top: 1px solid rgba(56,189,248,0.15);
+    border-bottom: 1px solid rgba(56,189,248,0.15);
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0;
+    max-width: 1200px;
+    margin: 0 auto;
+    border: 1px solid rgba(56,189,248,0.12);
+  }
+
+  .stat-card {
+    padding: 2.5rem 2rem;
+    border-right: 1px solid rgba(56,189,248,0.12);
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+    cursor: default;
+  }
+  .stat-card:last-child { border-right: none; }
+  .stat-card:hover { background: rgba(56,189,248,0.04); }
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    width: 0; height: 2px;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+  .stat-card:hover::after { width: 100%; }
+
+  .stat-number {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    font-weight: 300;
+    color: var(--ice);
+    line-height: 1;
+    display: block;
+  }
+  .stat-unit {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    color: var(--accent);
+    letter-spacing: 0.15em;
+    margin-top: 2px;
+    display: block;
+    text-transform: uppercase;
+  }
+  .stat-desc {
+    font-size: 0.85rem;
+    color: rgba(200,232,245,0.55);
+    margin-top: 0.6rem;
+    line-height: 1.5;
+  }
+
+  /* Species section */
+  .species-section {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .species-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5px;
+    background: rgba(56,189,248,0.08);
+  }
+
+  .species-card {
+    background: #061828;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 240px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+
+  .species-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .species-card[data-color="blue"]::before { background: linear-gradient(135deg, rgba(56,189,248,0.12) 0%, transparent 60%); }
+  .species-card[data-color="green"]::before { background: linear-gradient(135deg, rgba(78,240,176,0.12) 0%, transparent 60%); }
+  .species-card[data-color="purple"]::before { background: linear-gradient(135deg, rgba(168,85,247,0.12) 0%, transparent 60%); }
+  .species-card[data-color="orange"]::before { background: linear-gradient(135deg, rgba(249,115,22,0.1) 0%, transparent 60%); }
+
+  .species-card:hover::before { opacity: 1; }
+  .species-card:hover { transform: translateY(-3px); background: #071f36; }
+
+  .species-emoji {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(56,189,248,0.3));
+    transition: transform 0.3s ease, filter 0.3s;
+    line-height: 1;
+  }
+  .species-card:hover .species-emoji {
+    transform: scale(1.15);
+    filter: drop-shadow(0 0 30px rgba(56,189,248,0.6));
+  }
+
+  .species-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--snow);
+    margin-bottom: 0.3rem;
+  }
+
+  .species-sci {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: var(--glacier);
+    margin-bottom: 0.8rem;
+    opacity: 0.7;
+  }
+
+  .species-fact {
+    font-size: 0.85rem;
+    color: rgba(200,232,245,0.65);
+    line-height: 1.6;
+  }
+
+  .species-status {
+    display: inline-block;
+    padding: 2px 10px;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border-radius: 2px;
+    margin-top: 1rem;
+    font-weight: 700;
+  }
+  .status-vulnerable { background: rgba(249,115,22,0.2); color: #fb923c; border: 1px solid rgba(249,115,22,0.3); }
+  .status-endangered { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid rgba(239,68,68,0.3); }
+  .status-lc { background: rgba(78,240,176,0.15); color: #4ef0b0; border: 1px solid rgba(78,240,176,0.25); }
+
+  /* Climate timeline */
+  .climate-section {
+    background: #040e18;
+    border-top: 1px solid rgba(56,189,248,0.1);
+  }
+
+  .timeline {
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    padding-left: 2rem;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), rgba(56,189,248,0.1));
+  }
+
+  .tl-item {
+    position: relative;
+    padding-left: 2.5rem;
+    padding-bottom: 3rem;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.6s ease;
+  }
+  .tl-item.visible { opacity: 1; transform: translateX(0); }
+
+  .tl-dot {
+    position: absolute;
+    left: -6px;
+    top: 6px;
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--deep);
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+  .tl-item:hover .tl-dot {
+    background: var(--accent);
+    box-shadow: 0 0 20px rgba(56,189,248,0.6);
+  }
+
+  .tl-year {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .tl-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem;
+    color: var(--snow);
+    margin-bottom: 0.5rem;
+  }
+
+  .tl-text {
+    font-size: 0.9rem;
+    color: rgba(200,232,245,0.6);
+    line-height: 1.7;
+    max-width: 600px;
+  }
+
+  /* Ice chart */
+  .chart-section {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 5rem 2rem;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 2rem;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 140px 1fr 80px;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .bar-label {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--glacier);
+    text-align: right;
+  }
+
+  .bar-track {
+    height: 32px;
+    background: rgba(56,189,248,0.06);
+    border: 1px solid rgba(56,189,248,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 0;
+    transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+  }
+
+  .bar-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0; bottom: 0;
+    width: 2px;
+    background: white;
+    opacity: 0.7;
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+  }
+
+  .bar-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: var(--snow);
+    text-align: right;
+  }
+
+  /* Region section */
+  .regions-section {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .regions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px;
+    background: rgba(56,189,248,0.08);
+  }
+
+  @media (max-width: 700px) {
+    .regions-grid { grid-template-columns: 1fr; }
+  }
+
+  .region-card {
+    background: #061828;
+    padding: 3rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .region-card:hover { background: #071f36; }
+
+  .region-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: 1.5rem;
+    opacity: 0.85;
+  }
+
+  .region-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    font-weight: 300;
+    margin-bottom: 0.3rem;
+  }
+
+  .region-subtitle {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+  }
+
+  .region-facts {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .region-facts li {
+    font-size: 0.9rem;
+    color: rgba(200,232,245,0.65);
+    padding-left: 1.2rem;
+    position: relative;
+    line-height: 1.5;
+  }
+  .region-facts li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    opacity: 0.6;
+  }
+
+  .region-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 3px; width: 0;
+    transition: width 0.5s ease;
+  }
+  .region-card[data-side="arctic"]::after { background: linear-gradient(to right, var(--accent), var(--aurora-green)); }
+  .region-card[data-side="antarctic"]::after { background: linear-gradient(to right, var(--aurora-purple), var(--accent)); }
+  .region-card:hover::after { width: 100%; }
+
+  /* Quote */
+  .quote-section {
+    text-align: center;
+    padding: 6rem 2rem;
+    max-width: 800px;
+    margin: 0 auto;
+  }
+
+  .quote-mark {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 8rem;
+    color: var(--accent);
+    opacity: 0.15;
+    line-height: 0.5;
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  blockquote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.4rem, 3vw, 2.1rem);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.6;
+    color: var(--ice);
+  }
+
+  .quote-attr {
+    margin-top: 1.5rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--glacier);
+    opacity: 0.7;
+  }
+
+  /* CTA / footer */
+  .footer-section {
+    background: #020b13;
+    border-top: 1px solid rgba(56,189,248,0.1);
+    text-align: center;
+    padding: 4rem 2rem;
+  }
+
+  .cta-pill {
+    display: inline-block;
+    padding: 14px 40px;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+    margin-top: 1.5rem;
+  }
+  .cta-pill::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+    z-index: -1;
+  }
+  .cta-pill:hover::before { transform: scaleX(1); }
+  .cta-pill:hover { color: var(--deep); }
+
+  .footer-credit {
+    margin-top: 3rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: rgba(200,232,245,0.2);
+  }
+
+  /* Divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(56,189,248,0.2), transparent);
+    margin: 0 2rem;
+  }
+
+  /* Popup */
+  .species-popup {
+    position: fixed;
+    inset: 0;
+    display: none;
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background: rgba(2,11,19,0.85);
+    backdrop-filter: blur(12px);
+  }
+  .species-popup.open { display: flex; }
+
+  .popup-card {
+    background: #061828;
+    border: 1px solid rgba(56,189,248,0.2);
+    max-width: 540px;
+    width: 100%;
+    padding: 3rem;
+    position: relative;
+    animation: popIn 0.3s ease;
+  }
+
+  .popup-close {
+    position: absolute;
+    top: 1.2rem; right: 1.5rem;
+    font-size: 1.5rem;
+    color: var(--glacier);
+    cursor: pointer;
+    background: none; border: none;
+    transition: color 0.2s;
+  }
+  .popup-close:hover { color: var(--snow); }
+
+  .popup-emoji { font-size: 4rem; display: block; margin-bottom: 1rem; }
+  .popup-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.2rem;
+    margin-bottom: 0.2rem;
+  }
+  .popup-sci {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--glacier);
+    opacity: 0.7;
+    margin-bottom: 1.5rem;
+  }
+  .popup-body {
+    font-size: 0.92rem;
+    color: rgba(200,232,245,0.72);
+    line-height: 1.8;
+  }
+  .popup-details {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .popup-detail-item {
+    background: rgba(56,189,248,0.05);
+    border: 1px solid rgba(56,189,248,0.1);
+    padding: 0.8rem 1rem;
+  }
+  .popup-detail-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+  }
+  .popup-detail-val {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--snow);
+  }
+
+  /* Floating music button */
+  .music-btn {
+    position: fixed;
+    bottom: 2rem; right: 2rem;
+    z-index: 500;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: rgba(3,17,31,0.9);
+    border: 1px solid rgba(56,189,248,0.35);
+    color: var(--accent);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+    transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+    box-shadow: 0 0 20px rgba(56,189,248,0.1);
+  }
+  .music-btn:hover { border-color: var(--accent); box-shadow: 0 0 30px rgba(56,189,248,0.3); }
+  .music-btn.playing { border-color: var(--aurora-green); box-shadow: 0 0 25px rgba(78,240,176,0.3); color: var(--aurora-green); }
+  .music-btn .music-rings {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1px solid rgba(78,240,176,0.25);
+    animation: musicPulse 2s infinite;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .music-btn.playing .music-rings { opacity: 1; }
+  @keyframes musicPulse {
+    0% { transform: scale(1); opacity: 0.5; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  .music-label {
+    position: fixed;
+    bottom: 2.3rem; right: 5rem;
+    z-index: 499;
+    font-size: 0.65rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(200,232,245,0.35);
+    pointer-events: none;
+    white-space: nowrap;
+  }
+
+  /* Hero listen button */
+  .hero-audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2rem;
+    padding: 10px 24px;
+    border: 1px solid rgba(56,189,248,0.4);
+    background: rgba(3,17,31,0.6);
+    color: var(--glacier);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(4px);
+    animation: fadeUp 1s 1s ease both;
+    opacity: 0;
+  }
+  .hero-audio-btn:hover, .hero-audio-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 20px rgba(56,189,248,0.15);
+  }
+  .hero-audio-btn .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    opacity: 0.5;
+    transition: opacity 0.3s;
+  }
+  .hero-audio-btn.active .dot { opacity: 1; animation: dotPulse 1s infinite; }
+  @keyframes dotPulse {
+    0%,100% { transform: scale(1); }
+    50% { transform: scale(1.4); }
+  }
+
+  /* Section audio trigger button */
+  .section-audio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border: 1px solid rgba(56,189,248,0.25);
+    background: rgba(3,17,31,0.5);
+    color: rgba(200,232,245,0.5);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 0.5rem;
+    margin-bottom: 2.5rem;
+  }
+  .section-audio-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .section-audio-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(56,189,248,0.07); }
+  .section-audio-btn .sab-icon { font-size: 0.9rem; transition: transform 0.2s; }
+  .section-audio-btn:hover .sab-icon { transform: scale(1.2); }
+
+  /* Popup audio row */
+  .popup-audio-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0.7rem 1rem;
+    background: rgba(3,17,31,0.6);
+    border: 1px solid rgba(56,189,248,0.15);
+    margin-bottom: 1.2rem;
+    cursor: pointer;
+    transition: border-color 0.3s;
+  }
+  .popup-audio-row:hover { border-color: rgba(56,189,248,0.4); }
+  .popup-audio-row.active { border-color: var(--accent); }
+  .popup-play { font-size: 0.75rem; color: var(--accent); }
+  .popup-audio-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(200,232,245,0.45); }
+  .popup-audio-bar {
+    flex: 1;
+    height: 2px;
+    background: rgba(56,189,248,0.1);
+    position: relative;
+    overflow: hidden;
+  }
+  .popup-audio-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(to right, var(--accent), var(--aurora-green));
+    transition: width 0.3s linear;
+  }
+
+  /* Author badge */
+  .author-badge {
+    position: absolute;
+    bottom: 5rem;
+    right: 2rem;
+    text-align: right;
+    z-index: 2;
+  }
+  .author-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: rgba(56,189,248,0.45);
+    text-transform: uppercase;
+    margin-bottom: 3px;
+    display: block;
+  }
+  .author-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.05rem;
+    color: rgba(200,232,245,0.6);
+    letter-spacing: 0.05em;
+  }
+
+  /* Audio section */
+  .audio-section {
+    background: linear-gradient(180deg, #040e18 0%, #061828 100%);
+    border-top: 1px solid rgba(56,189,248,0.12);
+    border-bottom: 1px solid rgba(56,189,248,0.12);
+    padding: 5rem 2rem;
+  }
+  .audio-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+    gap: 2px;
+    background: rgba(56,189,248,0.07);
+  }
+  @media(max-width:560px){ .audio-grid { grid-template-columns: 1fr; } }
+
+  .audio-card {
+    background: #061828;
+    padding: 2rem 2rem 1.5rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .audio-card:hover { background: #071f36; }
+
+  .audio-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .audio-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem;
+    font-weight: 300;
+    color: var(--accent);
+    opacity: 0.25;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: -4px;
+  }
+  .audio-card-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.45rem;
+    font-weight: 400;
+    color: var(--snow);
+    margin-bottom: 0.2rem;
+    line-height: 1.2;
+  }
+  .audio-card-sub {
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: 0.7;
+  }
+
+  /* Fake player */
+  .audio-player {
+    background: rgba(3,17,31,0.7);
+    border: 1px solid rgba(56,189,248,0.15);
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: border-color 0.3s, background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .audio-player:hover { border-color: rgba(56,189,248,0.4); background: rgba(3,17,31,0.9); }
+  .audio-player.playing { border-color: var(--accent); background: rgba(56,189,248,0.07); }
+
+  .play-btn {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+    cursor: pointer;
+  }
+  .audio-player.playing .play-btn,
+  .play-btn:hover { background: var(--accent); color: var(--deep); }
+
+  .audio-progress {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+  .audio-track {
+    height: 3px;
+    background: rgba(56,189,248,0.12);
+    position: relative;
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .audio-track-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--accent), var(--aurora-green));
+    width: 0%;
+    transition: width 0.3s linear;
+    border-radius: 2px;
+  }
+  .audio-waves {
+    display: flex;
+    gap: 2px;
+    align-items: center;
+    height: 18px;
+  }
+  .wave-bar {
+    width: 3px;
+    background: rgba(56,189,248,0.3);
+    border-radius: 2px;
+    transition: height 0.2s;
+  }
+  .audio-player.playing .wave-bar { background: var(--accent); }
+  .audio-time {
+    font-size: 0.68rem;
+    color: rgba(200,232,245,0.35);
+    letter-spacing: 0.08em;
+    white-space: nowrap;
+  }
+
+  .audio-placeholder-note {
+    font-size: 0.72rem;
+    color: rgba(56,189,248,0.45);
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 1rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px dashed rgba(56,189,248,0.2);
+  }
+  .audio-placeholder-note span { opacity: 0.6; }
+
+  /* Script accordion */
+  .script-toggle {
+    background: none;
+    border: none;
+    color: var(--glacier);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .script-toggle:hover { color: var(--accent); }
+  .script-toggle .arrow { transition: transform 0.3s; display: inline-block; }
+  .script-toggle.open .arrow { transform: rotate(90deg); }
+
+  .script-text {
+    display: none;
+    margin-top: 0.8rem;
+    padding: 1rem;
+    background: rgba(3,17,31,0.5);
+    border-left: 2px solid rgba(56,189,248,0.2);
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: rgba(200,232,245,0.65);
+    line-height: 1.85;
+  }
+  .script-text.open { display: block; }
+
+  /* Ecosystems */
+  .eco-section {
+    padding: 5rem 2rem;
+    background: #020b13;
+    border-top: 1px solid rgba(56,189,248,0.1);
+  }
+  .eco-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5px;
+    background: rgba(56,189,248,0.07);
+  }
+  .eco-card {
+    background: #061828;
+    padding: 2.2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.3s;
+  }
+  .eco-card:hover { background: #071f36; }
+  .eco-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent);
+    opacity: 0.5;
+  }
+  .eco-icon { font-size: 2.5rem; margin-bottom: 1rem; display: block; }
+  .eco-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.6rem;
+    font-weight: 400;
+    margin-bottom: 0.8rem;
+    color: var(--snow);
+  }
+  .eco-body {
+    font-size: 0.88rem;
+    color: rgba(200,232,245,0.6);
+    line-height: 1.75;
+    margin-bottom: 1rem;
+  }
+  .eco-threats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 0.8rem;
+  }
+  .threat-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border: 1px solid rgba(249,115,22,0.3);
+    color: #fb923c;
+    background: rgba(249,115,22,0.07);
+  }
+
+  /* How to Act */
+  .action-section {
+    padding: 5rem 2rem;
+    background: linear-gradient(180deg, #061828 0%, #020b13 100%);
+    border-top: 1px solid rgba(78,240,176,0.15);
+  }
+  .action-grid {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.5px;
+    background: rgba(78,240,176,0.06);
+  }
+  .action-card {
+    background: #061828;
+    padding: 2rem;
+    transition: background 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .action-card:hover { background: #071f36; }
+  .action-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0;
+    height: 2px; width: 0;
+    background: var(--aurora-green);
+    transition: width 0.4s ease;
+  }
+  .action-card:hover::after { width: 100%; }
+  .action-icon {
+    font-size: 2.2rem;
+    margin-bottom: 1rem;
+    display: block;
+    filter: drop-shadow(0 0 12px rgba(78,240,176,0.3));
+  }
+  .action-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.35rem;
+    color: var(--aurora-green);
+    margin-bottom: 0.6rem;
+  }
+  .action-body {
+    font-size: 0.85rem;
+    color: rgba(200,232,245,0.6);
+    line-height: 1.7;
+  }
+
+  /* Animations */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.93); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .bar-row { grid-template-columns: 90px 1fr 55px; }
+    .bar-label { font-size: 0.68rem; }
+    .stat-card { padding: 1.5rem; }
+    .region-card { padding: 2rem; }
+    .popup-details { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<canvas id="bgCanvas"></canvas>
+
+<!-- ═══ AUDIO ELEMENTS ═══
+     👉 CÓMO AGREGAR TU AUDIO:
+     1. Pon tu archivo .mp3 en la MISMA carpeta que este HTML
+     2. Nómbralo exactamente como se indica abajo
+     3. Listo — se reproducirá al hacer clic en el botón
+
+     background.mp3  → Música ambiente de fondo (loop)
+     inicio.mp3      → Narración del Hero (Introducción)
+     species.mp3     → Narración de "Creatures of the Ice"
+     ecosistema.mp3  → Narración de Ecosystems
+     Actuar.mp3      → Narración de Combat & Prevention
+-->
+<audio id="bgMusic"     src="/mp3/background.mp3"  loop preload="none"></audio>
+<audio id="introAudio"  src="/mp3/inicio.mp3"        preload="none"></audio>
+<audio id="speciesAudio"src="/mp3/animal.mp3"      preload="none"></audio>
+<audio id="ecoAudio"    src="/mp3/ecosistema.mp3"   preload="none"></audio>
+<audio id="actionAudio" src="/mp3/Actuar.mp3"       preload="none"></audio>
+
+<!-- Floating music toggle -->
+<button class="music-btn" id="musicBtn" title="Toggle background music">
+  <div class="music-rings"></div>
+  🔇
+</button>
+<span class="music-label" id="musicLabel">Background music</span>
+
+<!-- HERO -->
+<section class="hero">
+  <span class="netflix-badge">Netflix Documentary</span>
+  <p class="hero-pretitle">Our Planet · Chapter II</p>
+  <h1 class="hero-title">Frozen<br>Worlds</h1>
+  <p class="hero-subtitle">Arctic &amp; Antarctic</p>
+  <p class="hero-tagline">
+    At Earth's two poles, life clings to existence in a world sculpted entirely by ice. 
+    These ancient, silent kingdoms are changing faster than anywhere else on the planet.
+  </p>
+  <button class="hero-audio-btn" id="introBtn">
+    <span class="dot"></span>
+    🎙️ Listen to Introduction
+  </button>
+  <div class="scroll-hint">
+    <span>Explore</span>
+    <div class="scroll-line"></div>
+  </div>
+  <div class="author-badge">
+    <span class="author-label">Created by</span>
+    <span class="author-name">Jhon Alexander Ossa Marin</span>
+  </div>
+</section>
+
+<!-- STATS -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <span class="stat-number" data-target="26">0</span>
+      <span class="stat-unit">Million km²</span>
+      <p class="stat-desc">Total polar ice coverage — representing ~17% of Earth's surface</p>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" data-target="3">0</span>
+      <span class="stat-unit">× faster warming</span>
+      <p class="stat-desc">Arctic heats up at least 3x faster than the global average</p>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" data-target="40">0</span>
+      <span class="stat-unit">% ice loss</span>
+      <p class="stat-desc">Arctic summer sea ice has declined ~40% since 1979</p>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" data-target="800">0</span>
+      <span class="stat-unit">Species at risk</span>
+      <p class="stat-desc">Polar species facing existential pressure from climate change</p>
+    </div>
+    <div class="stat-card">
+      <span class="stat-number" data-target="58">0</span>
+      <span class="stat-unit">% freshwater</span>
+      <p class="stat-desc">Of Earth's total fresh water locked in polar ice sheets</p>
+    </div>
+  </div>
+</section>
+
+<!-- ECOSYSTEMS -->
+<section class="eco-section">
+  <div style="max-width:1100px; margin:0 auto;">
+    <p class="section-label">Ecosystems Under Threat</p>
+    <h2 class="section-title">Habitats of the Frozen Worlds</h2>
+    <button class="section-audio-btn" id="ecoBtn">
+      <span class="sab-icon">🎙️</span> Listen to Ecosystems narration
+    </button>
+    <div class="eco-grid" id="ecoGrid"></div>
+  </div>
+</section>
+
+<!-- HOW TO ACT -->
+<section class="action-section">
+  <div style="max-width:1100px; margin:0 auto;">
+    <p class="section-label" style="color:var(--aurora-green);">What We Can Do</p>
+    <h2 class="section-title">Combat &amp; Prevention</h2>
+    <button class="section-audio-btn" id="actionBtn" style="border-color:rgba(78,240,176,0.25); margin-bottom:1rem;">
+      <span class="sab-icon">🎙️</span> Listen to this section
+    </button>
+    <p style="font-size:0.88rem; color:rgba(200,232,245,0.45); margin-bottom:3rem; max-width:600px; line-height:1.7;">
+      The survival of frozen worlds depends on decisions made today. Every action at every scale matters.
+    </p>
+    <div class="action-grid" id="actionGrid"></div>
+  </div>
+</section>
+
+<!-- QUOTE -->
+<div class="quote-section">
+  <span class="quote-mark">"</span>
+  <blockquote>
+    Our frozen worlds are not just remote wildernesses — they are the beating heart 
+    of Earth's climate system, regulating temperatures for every living creature on the planet.
+  </blockquote>
+  <p class="quote-attr">— David Attenborough, Our Planet narration</p>
+</div>
+
+<div class="divider"></div>
+
+<!-- SPECIES -->
+<section style="z-index:1; position:relative; padding: 5rem 2rem;">
+  <div class="species-section">
+    <p class="section-label">Wildlife Spotlight</p>
+    <h2 class="section-title">Creatures of the Ice</h2>
+    <button class="section-audio-btn" id="speciesBtn">
+      <span class="sab-icon">🎙️</span> Listen to this section
+    </button>
+    <div class="species-grid" id="speciesGrid">
+      <!-- Cards injected by JS -->
+    </div>
+    <p style="margin-top:1.2rem; font-size:0.78rem; color:rgba(200,232,245,0.35); text-align:center; letter-spacing:0.1em;">
+      CLICK ANY CARD FOR MORE DETAILS
+    </p>
+  </div>
+</section>
+
+<!-- REGIONS -->
+<section class="climate-section" style="padding:5rem 2rem;">
+  <div class="regions-section">
+    <p class="section-label">Two Poles</p>
+    <h2 class="section-title" style="margin-bottom:2rem;">Arctic vs Antarctic</h2>
+    <div class="regions-grid">
+      <div class="region-card" data-side="arctic">
+        <span class="region-icon">🧊</span>
+        <h3 class="region-name">Arctic</h3>
+        <p class="region-subtitle">North Pole · Ocean Basin</p>
+        <ul class="region-facts">
+          <li>A <strong>frozen ocean</strong> surrounded by land masses, avg depth 1,200 m</li>
+          <li>Home to polar bears, walruses, narwhals, Arctic foxes &amp; snowy owls</li>
+          <li>Sea ice reaches ~15 million km² in winter</li>
+          <li>Indigenous peoples have inhabited the Arctic for 20,000+ years</li>
+          <li>Warming 4× faster than the rest of the globe</li>
+        </ul>
+      </div>
+      <div class="region-card" data-side="antarctic">
+        <span class="region-icon">🐧</span>
+        <h3 class="region-name">Antarctic</h3>
+        <p class="region-subtitle">South Pole · Ice Continent</p>
+        <ul class="region-facts">
+          <li>A <strong>continent covered in ice</strong> surrounded by the Southern Ocean</li>
+          <li>Home to emperor penguins, leopard seals, blue whales &amp; albatross</li>
+          <li>Ice sheet holds 26.5 million km³ of ice — largest on Earth</li>
+          <li>Average elevation of ~2,300 m makes it the highest continent</li>
+          <li>Winter temperatures drop as low as −89 °C</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ICE LOSS CHART -->
+<section style="z-index:1; position:relative; background:#020b13; border-top:1px solid rgba(56,189,248,0.1);">
+  <div class="chart-section">
+    <p class="section-label">Data Visualization</p>
+    <h2 class="section-title">Arctic Sea Ice Extent Over Decades</h2>
+    <div class="bar-chart" id="barChart">
+      <!-- Bars injected by JS -->
+    </div>
+    <p style="margin-top:1.5rem; font-size:0.75rem; color:rgba(56,189,248,0.4); letter-spacing:0.1em; text-align:right;">
+      ⟶ Million km² · September minimum extent · Source: NSIDC
+    </p>
+  </div>
+</section>
+
+<!-- CLIMATE TIMELINE -->
+<section class="climate-section" style="padding:5rem 2rem;">
+  <div style="max-width:1000px; margin:0 auto;">
+    <p class="section-label">Critical Moments</p>
+    <h2 class="section-title">The Changing Ice: A Timeline</h2>
+    <div class="timeline" id="timeline">
+      <!-- Items injected by JS -->
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<section class="footer-section">
+  <p class="section-label" style="justify-content:center;">Our Planet</p>
+  <h2 style="font-family:'Cormorant Garamond',serif; font-size:clamp(1.8rem,4vw,3rem); font-weight:300; max-width:550px; margin:0 auto; line-height:1.2;">
+    The frozen worlds are speaking. Are we listening?
+  </h2>
+  <p style="margin-top:1rem; font-size:0.9rem; color:rgba(200,232,245,0.45); max-width:420px; margin:1rem auto 0; line-height:1.7;">
+    Every degree of warming changes these landscapes irreversibly. 
+    The wildlife documented in this chapter depends on swift global action.
+  </p>
+  <a href="https://www.ourplanet.com" target="_blank" class="cta-pill">Watch on Netflix</a>
+  <p class="footer-credit">Interactive Infographic · Our Planet S1 E2 · Frozen Worlds · 2019 · Netflix / WWF</p>
+  <p style="margin-top:0.8rem; font-size:0.72rem; letter-spacing:0.18em; color:rgba(200,232,245,0.3);">
+    Designed &amp; narrated by <span style="color:rgba(200,232,245,0.55);">Jhon Alexander Ossa Marin</span>
+  </p>
+</section>
+
+<!-- SPECIES POPUP -->
+<div class="species-popup" id="popup">
+  <div class="popup-card">
+    <button class="popup-close" id="popupClose">×</button>
+    <span class="popup-emoji" id="popupEmoji"></span>
+    <h3 class="popup-name" id="popupName"></h3>
+    <p class="popup-sci" id="popupSci"></p>
+    <p class="popup-body" id="popupBody"></p>
+    <div class="popup-details" id="popupDetails"></div>
+  </div>
+</div>
+
+<script>
+// ─── Custom cursor ───────────────────────────────
+const cursor = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursorRing');
+document.addEventListener('mousemove', e => {
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+  setTimeout(() => {
+    cursorRing.style.left = e.clientX + 'px';
+    cursorRing.style.top = e.clientY + 'px';
+  }, 80);
+});
+document.querySelectorAll('a, button, .species-card, .stat-card').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.width = '20px';
+    cursor.style.height = '20px';
+    cursorRing.style.width = '50px';
+    cursorRing.style.height = '50px';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.width = '12px';
+    cursor.style.height = '12px';
+    cursorRing.style.width = '36px';
+    cursorRing.style.height = '36px';
+  });
+});
+
+// ─── Canvas: Snow + Aurora ───────────────────────
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+// Snowflakes
+const flakes = Array.from({length: 130}, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  r: Math.random() * 2.5 + 0.5,
+  speed: Math.random() * 0.7 + 0.2,
+  drift: (Math.random() - 0.5) * 0.3,
+  alpha: Math.random() * 0.6 + 0.1
+}));
+
+// Aurora points
+let auroraT = 0;
+
+function drawAurora() {
+  const y = H * 0.22;
+  const grad = ctx.createLinearGradient(0, y - 80, 0, y + 120);
+  grad.addColorStop(0, 'rgba(78,240,176,0)');
+  grad.addColorStop(0.4, `rgba(78,240,176,${0.05 + 0.03 * Math.sin(auroraT)})`);
+  grad.addColorStop(0.6, `rgba(56,189,248,${0.04 + 0.02 * Math.cos(auroraT * 0.7)})`);
+  grad.addColorStop(0.8, `rgba(168,85,247,${0.03 + 0.02 * Math.sin(auroraT * 1.3)})`);
+  grad.addColorStop(1, 'rgba(168,85,247,0)');
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.moveTo(0, y - 60);
+  for (let x = 0; x <= W; x += 60) {
+    ctx.lineTo(x, y - 60 + Math.sin(x * 0.008 + auroraT) * 45 + Math.sin(x * 0.02 + auroraT * 0.5) * 20);
+  }
+  ctx.lineTo(W, y + 120);
+  ctx.lineTo(0, y + 120);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function animate() {
+  ctx.clearRect(0, 0, W, H);
+  auroraT += 0.006;
+  drawAurora();
+  flakes.forEach(f => {
+    ctx.beginPath();
+    ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200,232,245,${f.alpha})`;
+    ctx.fill();
+    f.y += f.speed;
+    f.x += f.drift;
+    if (f.y > H + 5) { f.y = -5; f.x = Math.random() * W; }
+    if (f.x > W + 5) f.x = -5;
+    if (f.x < -5) f.x = W + 5;
+  });
+  requestAnimationFrame(animate);
+}
+animate();
+
+// ─── Ecosystems data ─────────────────────────────
+const ecoData = [
+  {
+    icon: '🧊',
+    name: 'Arctic Sea Ice',
+    body: 'The Arctic sea ice is not just frozen water — it is a living habitat. Its underside hosts ice algae that fuel the entire polar food chain. Ringed seals use the ice to give birth; polar bears use it to hunt. As it retreats, the ecosystem collapses from the base upward.',
+    threats: ['Sea ice loss 40%', 'Ocean warming', 'Species displacement']
+  },
+  {
+    icon: '🌊',
+    name: 'Southern Ocean',
+    body: 'Surrounding Antarctica, this ocean is one of the most productive on Earth. Powered by upwelling currents, it sustains Antarctic krill, which feeds penguins, seals, and the largest animals ever to exist — blue whales. Rising ocean temperatures and acidification are disrupting krill reproduction.',
+    threats: ['Ocean acidification', 'Industrial fishing', 'Temperature rise']
+  },
+  {
+    icon: '🏔️',
+    name: 'Permafrost Tundra',
+    body: 'Beneath the Arctic tundra lies permanently frozen soil — permafrost — that has been locked for thousands of years. It stores vast amounts of carbon. As temperatures rise, permafrost thaws, releasing CO₂ and methane, which accelerate warming further in a dangerous feedback loop.',
+    threats: ['Thawing permafrost', 'Carbon release', 'Infrastructure loss']
+  },
+  {
+    icon: '🫧',
+    name: 'Under-Ice Oceans',
+    body: 'The waters beneath sea ice are dimly lit but rich in life. Zooplankton, Arctic cod, beluga whales and narwhals depend on under-ice environments for feeding and protection from predators. As ice cover shrinks, these refuges disappear and predators such as orcas penetrate deeper into formerly protected waters.',
+    threats: ['Loss of ice cover', 'Orca predation', 'Shipping routes']
+  },
+  {
+    icon: '🐦',
+    name: 'Polar Breeding Grounds',
+    body: 'Millions of seabirds and migratory species travel to polar regions to breed, exploiting the rich summer productivity. Climate change disrupts the timing of food availability — chicks hatch when prey is no longer abundant. Emperor penguins now face melting ice platforms before their chicks can survive independently.',
+    threats: ['Phenological mismatch', 'Ice platform loss', 'Prey decline']
+  },
+  {
+    icon: '🌿',
+    name: 'Arctic Tundra',
+    body: 'Above the permafrost, the tundra supports mosses, lichens, grasses and shrubs that feed reindeer, musk oxen, Arctic hares and lemmings. As temperatures rise, shrubs grow taller and spread north — a process called "shrubification" — fundamentally changing the landscape and the species it can support.',
+    threats: ['Shrubification', 'Rainfall-on-snow events', 'Lemming cycle collapse']
+  }
+];
+
+const ecoGrid = document.getElementById('ecoGrid');
+ecoData.forEach(e => {
+  const card = document.createElement('div');
+  card.className = 'eco-card';
+  card.innerHTML = `
+    <span class="eco-icon">${e.icon}</span>
+    <h3 class="eco-name">${e.name}</h3>
+    <p class="eco-body">${e.body}</p>
+    <div class="eco-threats">
+      ${e.threats.map(t => `<span class="threat-tag">${t}</span>`).join('')}
+    </div>
+  `;
+  ecoGrid.appendChild(card);
+});
+
+// ─── Action data ─────────────────────────────────
+const actionData = [
+  { icon: '⚡', title: 'Switch to Renewable Energy', body: 'Advocate for — and personally choose — solar, wind and hydroelectric power. Transitioning away from fossil fuels is the single most impactful global action to slow polar warming.' },
+  { icon: '🌿', title: 'Reduce Carbon Footprint', body: 'Eat less meat and dairy, choose public transport or electric vehicles, reduce air travel, and switch to energy-efficient appliances. Collective lifestyle changes drive policy change.' },
+  { icon: '🐋', title: 'Support Marine Sanctuaries', body: 'Back international agreements protecting polar seas from industrial fishing and drilling. Marine Protected Areas (MPAs) give ecosystems space to recover.' },
+  { icon: '📢', title: 'Spread Awareness', body: 'Education is a catalyst. Share documentaries like Our Planet, support science journalism, and have climate conversations in your community and school.' },
+  { icon: '🧪', title: 'Fund Polar Science', body: 'Support institutions and organizations conducting polar research: WWF, NSIDC, and Polar Bears International track changes and drive evidence-based policy.' },
+  { icon: '🗳️', title: 'Demand Political Action', body: 'Vote for and pressure leaders to adopt ambitious climate commitments. Net-zero by 2050 requires urgent legislation — citizens are the most powerful force for policy change.' },
+  { icon: '♻️', title: 'Reduce Plastic Waste', body: 'Plastic ends up in polar oceans, threatening marine life. Avoid single-use plastics, support plastic reduction legislation, and participate in clean-up initiatives.' },
+  { icon: '🤝', title: 'Support Indigenous Voices', body: 'Indigenous Arctic communities are climate frontline experts. Their traditional knowledge, amplified in international forums, is essential to polar protection strategies.' }
+];
+
+const actionGrid = document.getElementById('actionGrid');
+actionData.forEach(a => {
+  const card = document.createElement('div');
+  card.className = 'action-card';
+  card.innerHTML = `
+    <span class="action-icon">${a.icon}</span>
+    <h3 class="action-title">${a.title}</h3>
+    <p class="action-body">${a.body}</p>
+  `;
+  actionGrid.appendChild(card);
+});
+
+// ─── Counter animation ────────────────────────────
+const statNumbers = document.querySelectorAll('.stat-number[data-target]');
+const counterObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = +el.dataset.target;
+      let start = 0;
+      const step = target / 60;
+      const interval = setInterval(() => {
+        start += step;
+        el.textContent = Math.floor(start);
+        if (start >= target) { el.textContent = target; clearInterval(interval); }
+      }, 25);
+      counterObs.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+statNumbers.forEach(el => counterObs.observe(el));
+
+// ─── Species data ────────────────────────────────
+const speciesData = [
+  {
+    emoji: '🐻‍❄️', name: 'Polar Bear', sci: 'Ursus maritimus',
+    color: 'blue', status: 'vulnerable',
+    fact: 'The largest land predator on Earth, fully dependent on sea ice to hunt.',
+    body: 'Polar bears rely on sea ice as their primary platform for hunting seals. With Arctic sea ice shrinking, bears must travel farther and fast longer between meals. Females den in snowdrifts to give birth to cubs weighing under 1 kg — by spring they must weigh enough to survive.',
+    details: [
+      { label: 'Population', val: '~26,000' },
+      { label: 'Range', val: 'Arctic Ocean' },
+      { label: 'Lifespan', val: '25–30 years' },
+      { label: 'Threat', val: 'Sea ice loss' }
+    ]
+  },
+  {
+    emoji: '🦭', name: 'Walrus', sci: 'Odobenus rosmarus',
+    color: 'orange', status: 'vulnerable',
+    fact: 'Thousands crowd onto narrow beaches as sea ice disappears from the Arctic.',
+    body: 'Walruses use sea ice as resting platforms between dives for clams on the seabed. As the ice retreats northward into deeper water, walruses are forced ashore in massive haul-outs of up to 100,000 animals. The resulting overcrowding causes deadly stampedes — especially for calves.',
+    details: [
+      { label: 'Weight', val: 'Up to 1,700 kg' },
+      { label: 'Dive depth', val: '80 m' },
+      { label: 'Tusk length', val: 'Up to 1 m' },
+      { label: 'Threat', val: 'Loss of ice floes' }
+    ]
+  },
+  {
+    emoji: '🐧', name: 'Emperor Penguin', sci: 'Aptenodytes forsteri',
+    color: 'purple', status: 'endangered',
+    fact: 'The only animal to breed on Antarctic sea ice during the brutal polar winter.',
+    body: 'Emperor penguins trek up to 120 km across sea ice to their breeding colonies. Males incubate a single egg through winter, huddling at temperatures of −60°C. Declining sea ice is collapsing breeding success — four of five known colonies may be gone by 2100 without emissions cuts.',
+    details: [
+      { label: 'Population', val: '~600,000' },
+      { label: 'Dive depth', val: '564 m' },
+      { label: 'Breeding temp', val: '−60 °C' },
+      { label: 'Threat', val: 'Sea ice retreat' }
+    ]
+  },
+  {
+    emoji: '🐋', name: 'Narwhal', sci: 'Monodon monoceros',
+    color: 'green', status: 'lc',
+    fact: 'The "unicorn of the sea" — its spiral tusk is actually an elongated tooth.',
+    body: 'Narwhals are among the most sensitive species to sea ice changes. They spend summer in Arctic bays and fjords, relying on sea ice cover as protection from orcas. Their specialized diet — feeding almost exclusively under thick ice — makes them highly vulnerable to warming and increased shipping.',
+    details: [
+      { label: 'Tusk length', val: 'Up to 3 m' },
+      { label: 'Dive depth', val: '1,500 m' },
+      { label: 'Group name', val: 'A blessing' },
+      { label: 'Habitat', val: 'Arctic waters' }
+    ]
+  },
+  {
+    emoji: '🦊', name: 'Arctic Fox', sci: 'Vulpes lagopus',
+    color: 'blue', status: 'lc',
+    fact: 'Changes fur color from white in winter to brown/grey in summer for camouflage.',
+    body: 'The Arctic fox is one of the most adaptable polar species, able to survive temperatures as low as −70°C. Their winter coat is the warmest of any mammal. However, as the red fox expands northward due to warming, it outcompetes the Arctic fox — a cascading effect of climate change.',
+    details: [
+      { label: 'Litter size', val: 'Up to 25 pups' },
+      { label: 'Min temp', val: '−70 °C' },
+      { label: 'Diet', val: 'Lemmings, birds' },
+      { label: 'Fur change', val: 'Seasonal' }
+    ]
+  },
+  {
+    emoji: '🦅', name: 'Snowy Owl', sci: 'Bubo scandiacus',
+    color: 'purple', status: 'vulnerable',
+    fact: 'Unlike most owls, snowy owls are active during the Arctic day, hunting by sight.',
+    body: 'Snowy owls are tightly linked to lemming population cycles on the Arctic tundra. A single family can eat 1,500 lemmings in a year. As climate change disrupts lemming cycles — through rain-on-snow events that seal food under impenetrable ice — snowy owl breeding success plummets dramatically.',
+    details: [
+      { label: 'Wingspan', val: 'Up to 1.5 m' },
+      { label: 'Weight', val: 'Up to 3 kg' },
+      { label: 'Vision', val: 'Day & night' },
+      { label: 'Prey', val: '~1,500 lemmings/yr' }
+    ]
+  }
+];
+
+// Status label lookup
+const statusMap = {
+  'vulnerable': { cls: 'status-vulnerable', label: 'Vulnerable' },
+  'endangered': { cls: 'status-endangered', label: 'Endangered' },
+  'lc': { cls: 'status-lc', label: 'Least Concern' }
+};
+
+// Render species cards
+const grid = document.getElementById('speciesGrid');
+speciesData.forEach((s, i) => {
+  const card = document.createElement('div');
+  card.className = 'species-card';
+  card.dataset.color = s.color;
+  card.innerHTML = `
+    <span class="species-emoji">${s.emoji}</span>
+    <h3 class="species-name">${s.name}</h3>
+    <p class="species-sci">${s.sci}</p>
+    <p class="species-fact">${s.fact}</p>
+    <span class="species-status ${statusMap[s.status].cls}">${statusMap[s.status].label}</span>
+  `;
+  card.addEventListener('click', () => openPopup(s));
+  grid.appendChild(card);
+});
+
+// ─── Popup ───────────────────────────────────────
+const popup = document.getElementById('popup');
+const popupClose = document.getElementById('popupClose');
+
+function openPopup(s) {
+  document.getElementById('popupEmoji').textContent = s.emoji;
+  document.getElementById('popupName').textContent = s.name;
+  document.getElementById('popupSci').textContent = s.sci;
+  document.getElementById('popupBody').textContent = s.body;
+  const details = document.getElementById('popupDetails');
+  details.innerHTML = s.details.map(d => `
+    <div class="popup-detail-item">
+      <div class="popup-detail-label">${d.label}</div>
+      <div class="popup-detail-val">${d.val}</div>
+    </div>
+  `).join('');
+  popup.classList.add('open');
+}
+// ─── Bar chart ────────────────────────────────────
+const iceData = [
+  { label: '1979', val: 7.2, max: 7.5 },
+  { label: '1990', val: 6.8, max: 7.5 },
+  { label: '2000', val: 6.3, max: 7.5 },
+  { label: '2007', val: 4.3, max: 7.5 },
+  { label: '2012', val: 3.4, max: 7.5 },
+  { label: '2019', val: 4.1, max: 7.5 },
+  { label: '2023', val: 4.2, max: 7.5 },
+];
+
+const colors = [
+  'linear-gradient(to right, #7fc8e8, #38bdf8)',
+  'linear-gradient(to right, #6abfe4, #29b5f0)',
+  'linear-gradient(to right, #55b5e0, #1aaae8)',
+  'linear-gradient(to right, #f97316, #fb923c)',
+  'linear-gradient(to right, #ef4444, #f87171)',
+  'linear-gradient(to right, #f97316, #fb923c)',
+  'linear-gradient(to right, #f97316, #fb923c)',
+];
+
+const barChart = document.getElementById('barChart');
+iceData.forEach((d, i) => {
+  const pct = (d.val / d.max * 100).toFixed(1);
+  const row = document.createElement('div');
+  row.className = 'bar-row';
+  row.innerHTML = `
+    <span class="bar-label">${d.label}</span>
+    <div class="bar-track">
+      <div class="bar-fill" style="background:${colors[i]}; width:0" data-width="${pct}%"></div>
+    </div>
+    <span class="bar-val">${d.val}M</span>
+  `;
+  barChart.appendChild(row);
+});
+
+const barObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.querySelectorAll('.bar-fill').forEach(bar => {
+        setTimeout(() => bar.style.width = bar.dataset.width, 100);
+      });
+      barObs.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.3 });
+barObs.observe(barChart);
+
+// ─── Timeline ─────────────────────────────────────
+const tlData = [
+  { year: '1979', title: 'Satellite Era Begins', text: 'NASA begins systematic measurement of Arctic sea ice extent via satellite. Initial coverage: ~7.2 million km² in September.' },
+  { year: '2007', title: 'Record-Breaking Melt', text: 'Arctic sea ice hits a then-record low of 4.3 million km², shocking scientists and triggering international alarm about accelerating polar change.' },
+  { year: '2012', title: 'All-Time Minimum', text: 'The Arctic records its lowest sea ice extent ever measured: just 3.41 million km² — 49% below the 1979–2000 average. A turning point.' },
+  { year: '2019', title: 'Our Planet Documented', text: 'Netflix\'s "Our Planet" captures walruses falling from cliffs on Svalbard, Norway — a direct consequence of sea ice loss displacing their normal resting grounds.' },
+  { year: '2021', title: 'IPCC Code Red', text: 'The UN IPCC calls climate change a "code red for humanity." Arctic warming is now confirmed at 4× the global rate — the fastest regional warming on record.' },
+  { year: '2050', title: 'Projected Ice-Free Arctic', text: 'Under current trajectories, the Arctic Ocean is projected to be ice-free during summer months by 2050 — a landscape transformation not seen in 3 million years.' },
+];
+
+const tl = document.getElementById('timeline');
+tlData.forEach(item => {
+  const div = document.createElement('div');
+  div.className = 'tl-item';
+  div.innerHTML = `
+    <div class="tl-dot"></div>
+    <p class="tl-year">${item.year}</p>
+    <h4 class="tl-title">${item.title}</h4>
+    <p class="tl-text">${item.text}</p>
+  `;
+  tl.appendChild(div);
+});
+
+const tlObs = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.2 });
+document.querySelectorAll('.tl-item').forEach(el => tlObs.observe(el));
+
+// ─── AUDIO ENGINE ─────────────────────────────────
+const bgMusic      = document.getElementById('bgMusic');
+const introAudio   = document.getElementById('introAudio');
+const speciesAudio = document.getElementById('speciesAudio');
+const ecoAudio     = document.getElementById('ecoAudio');
+const actionAudio  = document.getElementById('actionAudio');
+
+// Set background music very low volume
+bgMusic.volume = 0.35;
+
+// All narration audios at good volume
+[introAudio, speciesAudio, ecoAudio, actionAudio].forEach(a => a.volume = 0.95);
+
+// ── Floating music button ──────────────────────────
+const musicBtn   = document.getElementById('musicBtn');
+const musicLabel = document.getElementById('musicLabel');
+let musicOn = false;
+
+musicBtn.addEventListener('click', () => {
+  musicOn = !musicOn;
+  if (musicOn) {
+    bgMusic.play().catch(() => {});
+    musicBtn.textContent = '🔊';
+    musicBtn.classList.add('playing');
+    musicBtn.insertAdjacentHTML('afterbegin', '<div class="music-rings"></div>');
+    musicLabel.textContent = 'Music on';
+  } else {
+    bgMusic.pause();
+    musicBtn.textContent = '🔇';
+    musicBtn.classList.remove('playing');
+    musicLabel.textContent = 'Music off';
+  }
+});
+
+// Helper: stop all narration audios
+function stopAllNarrations() {
+  [introAudio, speciesAudio, ecoAudio, actionAudio].forEach(a => {
+    a.pause();
+    a.currentTime = 0;
+  });
+  // Reset all section buttons
+  document.querySelectorAll('.section-audio-btn, .hero-audio-btn').forEach(b => b.classList.remove('active'));
+}
+
+// Helper: animate a progress bar while audio plays
+function animateBar(audioEl, fillEl, onDone) {
+  let raf;
+  function step() {
+    if (!audioEl.paused && audioEl.duration) {
+      const pct = (audioEl.currentTime / audioEl.duration) * 100;
+      fillEl.style.width = pct + '%';
+      raf = requestAnimationFrame(step);
+    }
+  }
+  audioEl.addEventListener('ended', () => {
+    cancelAnimationFrame(raf);
+    fillEl.style.width = '0%';
+    if (onDone) onDone();
+  }, { once: true });
+  raf = requestAnimationFrame(step);
+  return () => cancelAnimationFrame(raf);
+}
+
+// ── Hero intro button ──────────────────────────────
+const introBtn = document.getElementById('introBtn');
+let introBtnFill = null;
+introBtn.addEventListener('click', () => {
+  if (!introAudio.paused) {
+    introAudio.pause();
+    introAudio.currentTime = 0;
+    introBtn.classList.remove('active');
+    introBtn.innerHTML = '<span class="dot"></span> 🎙️ Listen to Introduction';
+    return;
+  }
+  stopAllNarrations();
+  introBtn.classList.add('active');
+  introBtn.innerHTML = '<span class="dot"></span> ⏸ Stop narration';
+  introAudio.play().catch(() => {
+    introBtn.innerHTML = '<span class="dot"></span> ⚠️ Add intro.mp3 to folder';
+  });
+  introAudio.addEventListener('ended', () => {
+    introBtn.classList.remove('active');
+    introBtn.innerHTML = '<span class="dot"></span> 🎙️ Listen to Introduction';
+  }, { once: true });
+});
+
+// ── Ecosystems button ──────────────────────────────
+const ecoBtn = document.getElementById('ecoBtn');
+ecoBtn.addEventListener('click', () => {
+  if (!ecoAudio.paused) {
+    ecoAudio.pause(); ecoAudio.currentTime = 0;
+    ecoBtn.classList.remove('active');
+    ecoBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to Ecosystems narration';
+    return;
+  }
+  stopAllNarrations();
+  ecoBtn.classList.add('active');
+  ecoBtn.innerHTML = '<span class="sab-icon">⏸</span> Stop narration';
+  ecoAudio.play().catch(() => {
+    ecoBtn.innerHTML = '<span class="sab-icon">⚠️</span> Add ecosystems.mp3 to folder';
+  });
+  ecoAudio.addEventListener('ended', () => {
+    ecoBtn.classList.remove('active');
+    ecoBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to Ecosystems narration';
+  }, { once: true });
+});
+
+// ── Action button ──────────────────────────────────
+const actionBtn = document.getElementById('actionBtn');
+actionBtn.addEventListener('click', () => {
+  if (!actionAudio.paused) {
+    actionAudio.pause(); actionAudio.currentTime = 0;
+    actionBtn.classList.remove('active');
+    actionBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to this section';
+    return;
+  }
+  stopAllNarrations();
+  actionBtn.classList.add('active');
+  actionBtn.innerHTML = '<span class="sab-icon">⏸</span> Stop narration';
+  actionAudio.play().catch(() => {
+    actionBtn.innerHTML = '<span class="sab-icon">⚠️</span> Add action.mp3 to folder';
+  });
+  actionAudio.addEventListener('ended', () => {
+    actionBtn.classList.remove('active');
+    actionBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to this section';
+  }, { once: true });
+});
+
+// ── Creatures of the Ice button ───────────────────
+const speciesBtn = document.getElementById('speciesBtn');
+speciesBtn.addEventListener('click', () => {
+  if (!speciesAudio.paused) {
+    speciesAudio.pause(); speciesAudio.currentTime = 0;
+    speciesBtn.classList.remove('active');
+    speciesBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to this section';
+    return;
+  }
+  stopAllNarrations();
+  speciesBtn.classList.add('active');
+  speciesBtn.innerHTML = '<span class="sab-icon">⏸</span> Stop narration';
+  speciesAudio.play().catch(() => {
+    speciesBtn.innerHTML = '<span class="sab-icon">⚠️</span> Add species.mp3 to folder';
+  });
+  speciesAudio.addEventListener('ended', () => {
+    speciesBtn.classList.remove('active');
+    speciesBtn.innerHTML = '<span class="sab-icon">🎙️</span> Listen to this section';
+  }, { once: true });
+});
+
+// Stop species audio when popup closes
+popupClose.addEventListener('click', () => {
+  popup.classList.remove('open');
+});
+popup.addEventListener('click', e => {
+  if (e.target === popup) {
+    popup.classList.remove('open');
+  }
+});
+
+</script>
+</body>
+</html>
